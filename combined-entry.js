@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = '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'; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -161,7 +161,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                return response.json().then(errorData => { // Try to parse the error JSON
+                    console.error('GitHub API Error Details:', errorData); // Log the error details
+                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                });
             }
             return response.json();
         })
@@ -186,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cartonLocationInput = document.getElementById('carton-location');
     const cartonEntryTableBody = document.getElementById('carton-entry-table')?.querySelector('tbody');
     const previewCartonFileButton = document.getElementById('preview-carton-file');
-    const saveCartonFileButton = document.getElementById('save-carton-file');
+    const saveCartonFileButton = document.getElementById('save-cartonFileButton');
     const addCartonEntryButton = document.getElementById('add-carton-entry');
     let allCartonEntries = [];
     let materialData = []; // Store the material data
@@ -330,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
      // Function to list files from GitHub repository
     function listFiles(type, tableBody) {
-        const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const directoryPath = `physical-counting-files/${type}`; // Directory to list files from
@@ -347,7 +351,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                return response.json().then(errorData => { // Try to parse the error JSON
+                    console.error('GitHub API Error Details:', errorData); // Log the error details
+                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                });
             }
             return response.json();
         })
@@ -385,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to download a file
     function downloadFile(fileName, type) {
-        const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
@@ -400,7 +408,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                return response.json().then(errorData => { // Try to parse the error JSON
+                    console.error('GitHub API Error Details:', errorData); // Log the error details
+                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                });
             }
             return response.json();
         })
@@ -425,50 +437,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to delete a file
     function deleteFile(fileName, type) {
-        if (confirm(`Are you sure you want to delete ${fileName}?`)) {
-             const githubToken = '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'; // Replace with your actual token!
-            const owner = 'krushnaharde123'; // Your GitHub username
-            const repo = 'Inventory-entry'; // Your repository name
-            const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
-             // Get the file SHA for deletion
-            getFileSha(fileName, type)
-                .then(sha => {
-                    if (!sha) {
-                        alert('Could not find file SHA for deletion.');
-                        return;
-                    }
-                    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-                    fetch(apiUrl, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `token ${githubToken}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `Delete ${fileName}`,
-                            sha: sha,
-                            branch: 'main'
-                        })
+         const githubToken = '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'; // Replace with your actual token!
+        const owner = 'krushnaharde123'; // Your GitHub username
+        const repo = 'Inventory-entry'; // Your repository name
+        const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
+         // Get the file SHA for deletion
+        getFileSha(fileName, type)
+            .then(sha => {
+                if (!sha) {
+                    alert('Could not find file SHA for deletion.');
+                    return;
+                }
+                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+                fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Delete ${fileName}`,
+                        sha: sha,
+                        branch: 'main'
                     })
-                    .then(response => {
-                        if (!response.ok) {
+                })
+                .then(response => {
+                    if (!response.ok) {
+                         console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                        return response.json().then(errorData => { // Try to parse the error JSON
+                            console.error('GitHub API Error Details:', errorData); // Log the error details
                             throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                        }
-                        alert('File deleted successfully!');
-                        // After deleting, refresh the file list
-                        const tableBody = (type === 'mcb') ? document.querySelector('#mcb-tab tbody') : document.querySelector('#carton-tab tbody');
-                        listFiles(type, tableBody); // Refresh the list
-                    })
-                    .catch(error => {
-                        console.error('Error deleting file:', error);
-                        alert('Error deleting file. See console for details.');
-                    });
+                        });
+                    }
+                    alert('File deleted successfully!');
+                    // After deleting, refresh the file list
+                    const tableBody = (type === 'mcb') ? document.querySelector('#mcb-tab tbody') : document.querySelector('#carton-tab tbody');
+                    listFiles(type, tableBody); // Refresh the list
+                })
+                .catch(error => {
+                    console.error('Error deleting file:', error);
+                    alert('Error deleting file. See console for details.');
                 });
-        }
+            });
     }
     // Helper function to get the file SHA
     function getFileSha(fileName, type) {
-        const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
@@ -483,7 +497,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                return response.json().then(errorData => { // Try to parse the error JSON
+                    console.error('GitHub API Error Details:', errorData); // Log the error details
+                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                });
             }
             return response.json();
         })
@@ -525,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -546,7 +564,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                return response.json().then(errorData => { // Try to parse the error JSON
+                    console.error('GitHub API Error Details:', errorData); // Log the error details
+                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                });
             }
             return response.json();
         })
@@ -578,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -599,7 +621,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
+                return response.json().then(errorData => { // Try to parse the error JSON
+                    console.error('GitHub API Error Details:', errorData); // Log the error details
+                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                });
             }
             return response.json();
         })
