@@ -2,14 +2,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // MCB Entry Page Logic
     const productFamilySelect = document.getElementById('product-family');
     const breakingCapacitySelect = document.getElementById('breaking-capacity');
-    const polaritySelect = document.getElementById('polarity'); 
-    const ratingSelect = document.getElementById('rating'); 
+    const polaritySelect = document.getElementById('polarity');
+    const ratingSelect = document.getElementById('rating');
     const quantityInput = document.getElementById('quantity');
     const locationInput = document.getElementById('location');
     const entryTableBody = document.getElementById('entry-table')?.querySelector('tbody');
     const previewInventoryFileButton = document.getElementById('preview-inventory-file');
     const generateInventoryFileButton = document.getElementById('generate-inventory-file');
-    const allEntries = [];
+    const addEntryButton = document.getElementById('add-entry');
+    let allEntries = [];
 
     const breakingCapacityData = {
         '5SL1': ['3KA'],
@@ -27,10 +28,9 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     productFamilySelect?.addEventListener('change', updateBreakingCapacityOptions);
-    document.getElementById('add-entry')?.addEventListener('click', addEntry);
+    addEntryButton?.addEventListener('click', addEntry);
     previewInventoryFileButton?.addEventListener('click', previewInventoryFile);
     generateInventoryFileButton?.addEventListener('click', generateInventoryFile);
-    document.addEventListener('DOMContentLoaded', renderFiles);
 
     function updateBreakingCapacityOptions() {
         const selectedFamily = productFamilySelect.value;
@@ -100,39 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         link.setAttribute('download', `inventory_${new Date().toISOString().split('T')[0]}.csv`);
         document.body.appendChild(link);
         link.click();
-        const storedFiles = JSON.parse(localStorage.getItem('generatedFiles')) || [];
-        storedFiles.push({ name: `inventory_${new Date().toISOString().split('T')[0]}.csv`, content: csvContent });
-        localStorage.setItem('generatedFiles', JSON.stringify(storedFiles));
-        renderFiles();
     }
-
-    function renderFiles() {
-        const filesTableBody = document.getElementById('files-table')?.querySelector('tbody');
-        filesTableBody.innerHTML = '';
-        const storedFiles = JSON.parse(localStorage.getItem('generatedFiles')) || [];
-        storedFiles.forEach((file, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${file.name}</td><td><button class="download-file" data-index="${index}">Download</button> <button class="delete-file" data-index="${index}">Delete</button></td>`;
-            filesTableBody.appendChild(row);
-        });
-    }
-
-    filesTableBody?.addEventListener('click', (event) => {
-        const index = event.target.getAttribute('data-index');
-        let storedFiles = JSON.parse(localStorage.getItem('generatedFiles')) || [];
-        if (event.target.classList.contains('download-file')) {
-            const file = storedFiles[index];
-            const link = document.createElement('a');
-            link.setAttribute('href', file.content);
-            link.setAttribute('download', file.name);
-            document.body.appendChild(link);
-            link.click();
-        } else if (event.target.classList.contains('delete-file')) {
-            storedFiles.splice(index, 1);
-            localStorage.setItem('generatedFiles', JSON.stringify(storedFiles));
-            renderFiles();
-        }
-    });
 
     // Carton Entry Page Logic
     const cartonMasterFileInput = document.getElementById('carton-master-file');
@@ -174,16 +142,16 @@ document.addEventListener('DOMContentLoaded', function () {
         materialList.innerHTML = '';
         data.forEach(item => {
             const option = document.createElement('option');
-            option.value = item.Description;
+            option.value = item['Material Description']; // Use the correct column name
             materialList.appendChild(option);
         });
     }
 
     function handleMaterialDescriptionInput() {
         const description = materialDescriptionInput.value;
-        const material = materialData.find(item => item.Description === description);
+        const material = materialData.find(item => item['Material Description'] === description); // Use the correct column name
         if (material) {
-            materialNumberInput.value = material.Number;
+            materialNumberInput.value = material['Material Number']; // Use the correct column name
         } else {
             materialNumberInput.value = '';
         }
@@ -249,5 +217,10 @@ document.addEventListener('DOMContentLoaded', function () {
         link.setAttribute('download', `carton_${new Date().toISOString().split('T')[0]}.csv`);
         document.body.appendChild(link);
         link.click();
+    }
+
+     // Initialize breaking capacity options on page load for MCB Entry
+     if (productFamilySelect) {
+        updateBreakingCapacityOptions();
     }
 });
