@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = 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; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -168,7 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             console.log('File saved successfully:', data);
             alert('MCB entries saved to GitHub successfully!');
-            // Optionally, refresh the file list on the Physical Counting page
+            // Refresh the file list on the Physical Counting page
+            listFiles('mcb', document.querySelector('#mcb-tab tbody'));
         })
         .catch(error => {
             console.error('Error saving file:', error);
@@ -329,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
      // Function to list files from GitHub repository
     function listFiles(type, tableBody) {
-        const githubToken = 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'; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const directoryPath = `physical-counting-files/${type}`; // Directory to list files from
@@ -364,8 +365,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to display files in the table
     function displayFiles(files, type, tableBody) {
-        tableBody.innerHTML = ''; // Clear previous entries
-        if (files.length === 0) {
+       tableBody.innerHTML = ''; // Clear previous entries
+        if (!files || files.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="2">No files found.</td></tr>';
             return;
         }
@@ -384,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to download a file
     function downloadFile(fileName, type) {
-        const githubToken = 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; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
@@ -425,38 +426,74 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to delete a file
     function deleteFile(fileName, type) {
         if (confirm(`Are you sure you want to delete ${fileName}?`)) {
-             const githubToken = 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; // Replace with your actual token!
+             const githubToken = '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'; // Replace with your actual token!
             const owner = 'krushnaharde123'; // Your GitHub username
             const repo = 'Inventory-entry'; // Your repository name
             const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
-            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-
-            fetch(apiUrl, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `token ${githubToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Delete ${fileName}`,
-                    sha: files.find(file => file.name === fileName).sha,  // SHA is required for delete
-                    branch: 'main'
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                }
-                alert('File deleted successfully!');
-                // After deleting, refresh the file list
-                const tableBody = (type === 'mcb') ? document.querySelector('#mcb-tab tbody') : document.querySelector('#carton-tab tbody');
-                listFiles(type, tableBody); // Refresh the list
-            })
-            .catch(error => {
-                console.error('Error deleting file:', error);
-                alert('Error deleting file. See console for details.');
-            });
+             // Get the file SHA for deletion
+            getFileSha(fileName, type)
+                .then(sha => {
+                    if (!sha) {
+                        alert('Could not find file SHA for deletion.');
+                        return;
+                    }
+                    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+                    fetch(apiUrl, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `token ${githubToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `Delete ${fileName}`,
+                            sha: sha,
+                            branch: 'main'
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+                        }
+                        alert('File deleted successfully!');
+                        // After deleting, refresh the file list
+                        const tableBody = (type === 'mcb') ? document.querySelector('#mcb-tab tbody') : document.querySelector('#carton-tab tbody');
+                        listFiles(type, tableBody); // Refresh the list
+                    })
+                    .catch(error => {
+                        console.error('Error deleting file:', error);
+                        alert('Error deleting file. See console for details.');
+                    });
+                });
         }
+    }
+    // Helper function to get the file SHA
+    function getFileSha(fileName, type) {
+        const githubToken = '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'; // Replace with your actual token!
+        const owner = 'krushnaharde123'; // Your GitHub username
+        const repo = 'Inventory-entry'; // Your repository name
+        const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        return fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(fileData => {
+            return fileData.sha;
+        })
+        .catch(error => {
+            console.error('Error getting file SHA:', error);
+            return null;
+        });
     }
 
     // Event listener for download and delete buttons - Physical Counting
@@ -488,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = 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; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -541,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = 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'; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
