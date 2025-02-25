@@ -155,3 +155,12 @@ th {
 .tab-button:hover {
     background-color: #bbb;
 }
+
+/* Loading indicator styles */
+#loading-indicator {
+    display: none;
+    text-align: center;
+    margin-top: 10px;
+    font-style: italic;
+    color: gray;
+}
