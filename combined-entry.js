@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     productFamilySelect?.addEventListener('change', updateBreakingCapacityOptions);
     addEntryButton?.addEventListener('click', addEntry);
     previewInventoryFileButton?.addEventListener('click', previewInventoryFile);
-    generateInventoryFileButton?.addEventListener('click', generateInventoryFile);
+    generateInventoryFileButton?.addEventListener('click', generateInventoryFileToGitHub); // Changed to generateInventoryFileToGitHub
 
     function updateBreakingCapacityOptions() {
         const selectedFamily = productFamilySelect.value;
@@ -124,51 +124,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         generateInventoryFileButton.style.display = 'inline-block';
     }
-
-    function generateInventoryFile() {
+    // Function to generate and save the file to GitHub
+    function generateInventoryFileToGitHub() {
         if (allEntries.length === 0) {
             alert('No entries to generate.');
             return;
         }
 
-        // Ask for the file name
         const fileName = prompt("Please enter the file name:", "inventory");
         if (fileName === null || fileName === "") {
-            // User cancelled or entered an empty name
             return;
         }
 
         const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-
-        // Create a download link
-        const downloadLink = document.createElement('a');
-        downloadLink.setAttribute('href', encodeURI(csvContent));
-        downloadLink.setAttribute('download', `${fileName}.csv`);
-        downloadLink.style.display = 'none'; // Hide the link
-
-        // Add the link to the document
-        document.body.appendChild(downloadLink);
-
-        // Trigger the download
-        downloadLink.click();
-
-        // Remove the link from the document
-        document.body.removeChild(downloadLink);
-
-
-        // ** test **
+        const contentEncoded = btoa(csvContent);
         const githubToken = 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; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
-        const branch = 'main'; // Or your desired branch
-        const filePath = `physical-counting-files/mcb/${fileName}.csv`; // Customize path
-
-        // Encode the content
-        const contentEncoded = btoa(csvContent);
-
-        // GitHub API endpoint
+        const branch = 'main';
+        const filePath = `physical-counting-files/mcb/${fileName}.csv`;
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
 
         fetch(apiUrl, {
@@ -180,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 message: `Add ${fileName}.csv`,
                 content: contentEncoded,
-                branch: branch,
+                branch: branch
             })
         })
         .then(response => {
@@ -191,11 +167,12 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             console.log('File saved successfully:', data);
-            alert('File saved successfully!');
+            alert('MCB entries saved to GitHub successfully!');
+            // Optionally, refresh the file list on the Physical Counting page
         })
         .catch(error => {
             console.error('Error saving file:', error);
-            alert('Error saving file. See console for details.');
+            alert('Error saving file to GitHub. See console for details.');
         });
     }
 
@@ -352,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
      // Function to list files from GitHub repository
     function listFiles(type, tableBody) {
-        const githubToken = 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; // Replace with your actual token!
+        const githubToken = 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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const directoryPath = `physical-counting-files/${type}`; // Directory to list files from
@@ -564,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = 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; // Replace with your actual token!
+        const githubToken = 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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
