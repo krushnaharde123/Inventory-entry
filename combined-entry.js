@@ -59,6 +59,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const entry = { polarity, rating, productFamily, breakingCapacity, quantity, location };
         allEntries.push(entry);
+        displayMcbEntries();  // Call the display function to update the table
+
+        // Reset form fields
+        polaritySelect.value = '';
+        ratingSelect.value = '';
+        productFamilySelect.value = '';
+        updateBreakingCapacityOptions();
+        quantityInput.value = '';
+        locationInput.value = '';
+    }
+
+     // Function to display all MCB entries
+    function displayMcbEntries() {
+        entryTableBody.innerHTML = ''; // Clear the table body
+        allEntries.forEach(entry => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${entry.polarity}</td>
+                <td>${entry.rating}</td>
+                <td>${entry.productFamily}</td>
+                <td>${entry.breakingCapacity}</td>
+                <td>${entry.quantity}</td>
+                <td>${entry.location}</td>
+            `;
+            entryTableBody.appendChild(row);
+        });
     }
 
     function previewInventoryFile() {
@@ -136,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             console.log('File saved successfully:', data);
             alert('File saved successfully!');
-            listFiles(); // Refresh the file list after saving
         })
         .catch(error => {
             console.error('Error saving file:', error);
@@ -144,12 +169,163 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Function to list files from GitHub repository
-    function listFiles() {
+    // Carton Entry Page Logic
+    const cartonMasterFileInput = document.getElementById('carton-master-file');
+    const materialDescriptionInput = document.getElementById('material-description');
+    const materialList = document.getElementById('material-list');
+    const materialNumberInput = document.getElementById('material-number');
+    const cartonQuantityInput = document.getElementById('carton-quantity');
+    const cartonLocationInput = document.getElementById('carton-location');
+    const cartonEntryTableBody = document.getElementById('carton-entry-table')?.querySelector('tbody');
+    const previewCartonFileButton = document.getElementById('preview-carton-file');
+    const saveCartonFileButton = document.getElementById('save-carton-file');
+    const addCartonEntryButton = document.getElementById('add-carton-entry');
+    let allCartonEntries = [];
+    let materialData = []; // Store the material data
+
+    // Event Listeners
+    cartonMasterFileInput?.addEventListener('change', handleFileUpload);
+    materialDescriptionInput?.addEventListener('input', handleMaterialDescriptionInput);
+    addCartonEntryButton?.addEventListener('click', addCartonEntry);
+    previewCartonFileButton?.addEventListener('click', previewCartonFile);
+    saveCartonFileButton?.addEventListener('click', saveCartonFile);
+
+    // Function to handle file upload
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                materialData = XLSX.utils.sheet_to_json(worksheet);
+                populateMaterialList(); // Call populateMaterialList *after* materialData is loaded
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    }
+
+    // Function to populate the material list (datalist)
+    function populateMaterialList() {
+        materialList.innerHTML = ''; // Clear existing options
+        materialData.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item['Material Description']; // Use the correct column name
+            materialList.appendChild(option);
+        });
+    }
+
+    // Function to handle material description input
+    function handleMaterialDescriptionInput() {
+        const description = materialDescriptionInput.value;
+        const material = materialData.find(item => item['Material Description'] === description); // Use the correct column name
+
+        if (material) {
+            materialNumberInput.value = material['Material Number']; // Use the correct column name
+        } else {
+            materialNumberInput.value = '';
+        }
+    }
+
+    // Function to add a carton entry
+    function addCartonEntry() {
+        const description = materialDescriptionInput.value;
+        const number = materialNumberInput.value;
+        const quantity = cartonQuantityInput.value;
+        const location = cartonLocationInput.value;
+
+        if (!description || !number || !quantity || !location) {
+            alert('Please fill all fields before adding entry.');
+            return;
+        }
+
+        const entry = { description, number, quantity, location };
+        allCartonEntries.push(entry);
+        // Display all entries, not just the last one
+        displayCartonEntries();
+
+        // Clear the input fields
+        materialDescriptionInput.value = '';
+        materialNumberInput.value = '';
+        cartonQuantityInput.value = '';
+        cartonLocationInput.value = '';
+    }
+
+    // Function to display all carton entries
+    function displayCartonEntries() {
+        cartonEntryTableBody.innerHTML = ''; // Clear the table body
+        allCartonEntries.forEach(entry => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${entry.description}</td>
+                <td>${entry.number}</td>
+                <td>${entry.quantity}</td>
+                <td>${entry.location}</td>
+            `;
+            cartonEntryTableBody.appendChild(row);
+        });
+    }
+
+
+    // Function to preview the carton file
+    function previewCartonFile() {
+        if (allCartonEntries.length === 0) {
+            alert('No entries to preview.');
+            return;
+        }
+        displayCartonEntries(); // Display all entries
+        saveCartonFileButton.style.display = 'inline-block';
+    }
+
+    // Function to save the carton file
+    function saveCartonFile() {
+         if (allCartonEntries.length === 0) {
+            alert('No entries to generate.');
+            return;
+        }
+        // Ask for the file name
+        const fileName = prompt("Please enter the file name:", "carton");
+        if (fileName === null || fileName === "") {
+            return;
+        }
+
+        const csvHeader = "Material Description,Material Number,Quantity,Location";
+        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
+        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
+        document.body.appendChild(link);
+        link.click();
+    }
+
+     // Initialize breaking capacity options on page load for MCB Entry
+     if (productFamilySelect) {
+        updateBreakingCapacityOptions();
+    }
+
+    // Call listFiles() on page load - Physical Counting
+    const mcbTab = document.getElementById('mcb-tab');
+    const cartonTab = document.getElementById('carton-tab');
+
+    if (mcbTab) {
+        const mcbTableBody = mcbTab.querySelector('tbody');
+        listFiles('mcb', mcbTableBody);
+    }
+
+    if (cartonTab) {
+        const cartonTableBody = cartonTab.querySelector('tbody');
+        listFiles('carton', cartonTableBody);
+    }
+     // Function to list files from GitHub repository
+    function listFiles(type, tableBody) {
         const githubToken = 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; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
-        const directoryPath = 'physical-counting-files/mcb'; // Directory to list files from
+        const directoryPath = `physical-counting-files/${type}`; // Directory to list files from
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${directoryPath}`;
 
         document.getElementById('loading-indicator').style.display = 'block'; // Show loading indicator
@@ -168,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(files => {
-            displayFiles(files);
+            displayFiles(files, type, tableBody);
         })
         .catch(error => {
             console.error('Error listing files:', error);
@@ -180,10 +356,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Function to display files in the table
-    function displayFiles(files) {
-        entryTableBody.innerHTML = ''; // Clear previous entries
+    function displayFiles(files, type, tableBody) {
+        tableBody.innerHTML = ''; // Clear previous entries
         if (files.length === 0) {
-            entryTableBody.innerHTML = '<tr><td colspan="2">No files found.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="2">No files found.</td></tr>';
             return;
         }
         files.forEach((file, index) => {
@@ -192,19 +368,19 @@ document.addEventListener('DOMContentLoaded', function () {
             row.innerHTML = `
                 <td>${file.name}</td>
                 <td>
-                    <button class="download-file" data-name="${file.name}">Download</button>
-                    <button class="delete-file" data-name="${file.name}">Delete</button>
+                    <button class="download-file" data-name="${file.name}" data-type="${type}">Download</button>
+                    <button class="delete-file" data-name="${file.name}" data-type="${type}">Delete</button>
                 </td>`;
-            entryTableBody.appendChild(row);
+            tableBody.appendChild(row);
         });
     }
 
     // Function to download a file
-    function downloadFile(fileName) {
+    function downloadFile(fileName, type) {
         const githubToken = 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; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
-        const filePath = `physical-counting-files/mcb/${fileName}`; // Path to the file
+        const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
         const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
 
         fetch(apiUrl, {
@@ -240,12 +416,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Function to delete a file
-    function deleteFile(fileName) {
+    function deleteFile(fileName, type) {
         if (confirm(`Are you sure you want to delete ${fileName}?`)) {
              const githubToken = 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; // Replace with your actual token!
             const owner = 'krushnaharde123'; // Your GitHub username
             const repo = 'Inventory-entry'; // Your repository name
-            const filePath = `physical-counting-files/mcb/${fileName}`; // Path to the file
+            const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
             const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
 
             fetch(apiUrl, {
@@ -265,7 +441,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
                 }
                 alert('File deleted successfully!');
-                listFiles(); // Refresh the file list after deleting
+                // After deleting, refresh the file list
+                const tableBody = (type === 'mcb') ? document.querySelector('#mcb-tab tbody') : document.querySelector('#carton-tab tbody');
+                listFiles(type, tableBody); // Refresh the list
             })
             .catch(error => {
                 console.error('Error deleting file:', error);
@@ -274,156 +452,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Event listener for download and delete buttons
-    entryTableBody?.addEventListener('click', function (event) {
+    // Event listener for download and delete buttons - Physical Counting
+    document.querySelector('.content')?.addEventListener('click', function (event) {
         if (event.target.classList.contains('download-file')) {
             const fileName = event.target.dataset.name;
-            downloadFile(fileName);
+            const type = event.target.dataset.type;
+            downloadFile(fileName, type);
         } else if (event.target.classList.contains('delete-file')) {
             const fileName = event.target.dataset.name;
-            deleteFile(fileName);
+            const type = event.target.dataset.type;
+            deleteFile(fileName, type);
         }
     });
-
-    // Call listFiles() on page load
-    listFiles();
-
-    // Carton Entry Page Logic
-    const cartonMasterFileInput = document.getElementById('carton-master-file');
-    const materialDescriptionInput = document.getElementById('material-description');
-    const materialList = document.getElementById('material-list');
-    const materialNumberInput = document.getElementById('material-number');
-    const cartonQuantityInput = document.getElementById('carton-quantity');
-    const cartonLocationInput = document.getElementById('carton-location');
-    const cartonEntryTableBody = document.getElementById('carton-entry-table')?.querySelector('tbody');
-    const previewCartonFileButton = document.getElementById('preview-carton-file');
-    const saveCartonFileButton = document.getElementById('save-carton-file');
-    const addCartonEntryButton = document.getElementById('add-carton-entry');
-    let allCartonEntries = [];
-    let lastCartonEntry = null;
-    let materialData = [];
-
-    cartonMasterFileInput?.addEventListener('change', handleFileUpload);
-    materialDescriptionInput?.addEventListener('input', handleMaterialDescriptionInput);
-    addCartonEntryButton?.addEventListener('click', addCartonEntry);
-    previewCartonFileButton?.addEventListener('click', previewCartonFile);
-    saveCartonFileButton?.addEventListener('click', saveCartonFile);
-
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                materialData = XLSX.utils.sheet_to_json(worksheet);
-                populateMaterialList(materialData);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    }
-
-    function populateMaterialList(data) {
-        materialList.innerHTML = '';
-        data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item['Material Description']; // Use the correct column name
-            materialList.appendChild(option);
-        });
-    }
-
-    function handleMaterialDescriptionInput() {
-        const description = materialDescriptionInput.value;
-        const material = materialData.find(item => item['Material Description'] === description); // Use the correct column name
-        if (material) {
-            materialNumberInput.value = material['Material Number']; // Use the correct column name
-        } else {
-            materialNumberInput.value = '';
-        }
-    }
-
-    function addCartonEntry() {
-        const description = materialDescriptionInput.value;
-        const number = materialNumberInput.value;
-        const quantity = cartonQuantityInput.value;
-        const location = cartonLocationInput.value;
-
-        if (!description || !number || !quantity || !location) {
-            alert('Please fill all fields before adding entry.');
-            return;
-        }
-
-        const entry = { description, number, quantity, location };
-        allCartonEntries.push(entry);
-        lastCartonEntry = entry;
-        displayLastCartonEntry();
-
-        materialDescriptionInput.value = '';
-        materialNumberInput.value = '';
-        cartonQuantityInput.value = '';
-        cartonLocationInput.value = '';
-    }
-
-   function displayLastCartonEntry() {
-        cartonEntryTableBody.innerHTML = '';
-         if (lastCartonEntry) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${lastCartonEntry.description}</td>
-                <td>${lastCartonEntry.number}</td>
-                <td>${lastCartonEntry.quantity}</td>
-                <td>${lastCartonEntry.location}</td>
-                <td><button onclick="removeCartonEntry()">Remove</button></td>
-            `;
-            cartonEntryTableBody.appendChild(row);
-        }
-    }
-
-    function removeCartonEntry() {
-        if (lastCartonEntry) {
-            allCartonEntries = allCartonEntries.filter(entry => entry !== lastCartonEntry);
-            lastCartonEntry = null;
-            displayLastCartonEntry();
-        }
-    }
-
-
-    function previewCartonFile() {
-        if (allCartonEntries.length === 0) {
-            alert('No entries to preview.');
-            return;
-        }
-        displayLastCartonEntry();
-        saveCartonFileButton.style.display = 'inline-block';
-    }
-
-    function saveCartonFile() {
-         if (allCartonEntries.length === 0) {
-            alert('No entries to generate.');
-            return;
-        }
-        // Ask for the file name
-        const fileName = prompt("Please enter the file name:", "carton");
-        if (fileName === null || fileName === "") {
-            // User cancelled or entered an empty name
-            return;
-        }
-
-        const csvHeader = "Material Description,Material Number,Quantity,Location";
-        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
-        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
-        document.body.appendChild(link);
-        link.click();
-    }
-
-     // Initialize breaking capacity options on page load for MCB Entry
-     if (productFamilySelect) {
-        updateBreakingCapacityOptions();
-    }
 });
