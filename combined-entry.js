@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.removeChild(downloadLink);
 
 
-       
+        // ** test **
         const githubToken = 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; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
@@ -494,4 +494,111 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteFile(fileName, type);
         }
     });
+
+    // Function to save MCB entries to GitHub (called from Physical Counting page)
+     window.saveMcbEntries = function () {
+        if (allEntries.length === 0) {
+            alert('No MCB entries to save.');
+            return;
+        }
+
+        const fileName = prompt("Please enter the file name:", "mcb_inventory");
+        if (fileName === null || fileName === "") {
+            return;
+        }
+
+        const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
+        const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
+        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
+        const contentEncoded = btoa(csvContent);
+        const githubToken = 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; // Replace with your actual token!
+        const owner = 'krushnaharde123'; // Your GitHub username
+        const repo = 'Inventory-entry'; // Your repository name
+        const branch = 'main';
+        const filePath = `physical-counting-files/mcb/${fileName}.csv`;
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `Add ${fileName}.csv`,
+                content: contentEncoded,
+                branch: branch
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('File saved successfully:', data);
+            alert('MCB entries saved successfully!');
+            // Refresh the file list after saving
+            const mcbTableBody = document.querySelector('#mcb-tab tbody');
+            listFiles('mcb', mcbTableBody);
+        })
+        .catch(error => {
+            console.error('Error saving file:', error);
+            alert('Error saving file. See console for details.');
+        });
+    };
+     // Function to save Carton entries to GitHub (called from Physical Counting page)
+     window.saveCartonEntries = function () {
+        if (allCartonEntries.length === 0) {
+            alert('No Carton entries to save.');
+            return;
+        }
+
+        const fileName = prompt("Please enter the file name:", "carton_inventory");
+        if (fileName === null || fileName === "") {
+            return;
+        }
+
+        const csvHeader = "Material Description,Material Number,Quantity,Location";
+        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
+        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
+        const contentEncoded = btoa(csvContent);
+        const githubToken = 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; // Replace with your actual token!
+        const owner = 'krushnaharde123'; // Your GitHub username
+        const repo = 'Inventory-entry'; // Your repository name
+        const branch = 'main';
+        const filePath = `physical-counting-files/carton/${fileName}.csv`;
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `Add ${fileName}.csv`,
+                content: contentEncoded,
+                branch: branch
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('File saved successfully:', data);
+            alert('Carton entries saved successfully!');
+            // Refresh the file list after saving
+            const cartonTableBody = document.querySelector('#carton-tab tbody');
+            listFiles('carton', cartonTableBody);
+        })
+        .catch(error => {
+            console.error('Error saving file:', error);
+            alert('Error saving file. See console for details.');
+        });
+    };
 });
