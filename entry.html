@@ -74,4 +74,43 @@
                     <option value="ELSA-1">ELSA-1</option>
                     <option value="5SL7">5SL7</option>
                     <option value="K">K</option>
-                    <option value="MB">MB</
+                    <option value="MB">MB</option>
+                    <option value="MB Europe">MB Europe</option>
+                    <option value="5SL7-K">5SL7-K</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="breaking-capacity">Breaking Capacity</label>
+                <select id="breaking-capacity"></select>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" min="1">
+            </div>
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" placeholder="Enter location">
+            </div>
+            <button type="button" id="add-entry">Add Entry</button>
+        </form>
+        <table id="entry-table">
+            <thead>
+                <tr>
+                    <th>Polarity</th>
+                    <th>Rating</th>
+                    <th>Product Family</th>
+                    <th>Breaking Capacity</th>
+                    <th>Quantity</th>
+                    <th>Location</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="action-buttons">
+            <button type="button" id="preview-inventory-file">Preview Inventory File</button>
+            <button type="button" id="generate-inventory-file" style="display: none;">Generate Inventory File</button>
+        </div>
+    </div>
+</body>
+</html>
