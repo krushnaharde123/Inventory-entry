@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const entryTableBody = document.getElementById('entry-table')?.querySelector('tbody');
     const previewInventoryFileButton = document.getElementById('preview-inventory-file');
     const generateInventoryFileButton = document.getElementById('generate-inventory-file');
-    const addEntryButton = document.getElementById('add-entry');
+    const addEntryButton = document.getElementById('add-entry'); // Get the correct add button
     let allEntries = [];
+    let lastEntry = null;
 
     const breakingCapacityData = {
         '5SL1': ['3KA'],
@@ -59,8 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const entry = { polarity, rating, productFamily, breakingCapacity, quantity, location };
         allEntries.push(entry);
+        lastEntry = entry;
         displayMcbEntries();  // Call the display function to update the table
-
         // Reset form fields
         polaritySelect.value = '';
         ratingSelect.value = '';
@@ -73,18 +74,47 @@ document.addEventListener('DOMContentLoaded', function () {
      // Function to display all MCB entries
     function displayMcbEntries() {
         entryTableBody.innerHTML = ''; // Clear the table body
-        allEntries.forEach(entry => {
+         if (lastEntry) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${entry.polarity}</td>
-                <td>${entry.rating}</td>
-                <td>${entry.productFamily}</td>
-                <td>${entry.breakingCapacity}</td>
-                <td>${entry.quantity}</td>
-                <td>${entry.location}</td>
-            `;
+                <td>${lastEntry.polarity}</td>
+                <td>${lastEntry.rating}</td>
+                <td>${lastEntry.productFamily}</td>
+                <td>${lastEntry.breakingCapacity}</td>
+                <td>${lastEntry.quantity}</td>
+                <td>${lastEntry.location}</td>
+                 <td><button class="edit-entry">Edit</button></td>
+                `;
             entryTableBody.appendChild(row);
-        });
+        }
+    }
+
+      // Edit entry functionality (add this event listener)
+    entryTableBody?.addEventListener('click', function(event) {
+        if (event.target.classList.contains('edit-entry')) {
+            editEntry();
+        }
+    });
+
+    function editEntry() {
+        if (lastEntry) {
+            // Populate the form with the last entry's data
+            polaritySelect.value = lastEntry.polarity;
+            ratingSelect.value = lastEntry.rating;
+            productFamilySelect.value = lastEntry.productFamily;
+
+            // Update breaking capacity options based on product family
+            updateBreakingCapacityOptions();
+            breakingCapacitySelect.value = lastEntry.breakingCapacity;
+
+            quantityInput.value = lastEntry.quantity;
+            locationInput.value = lastEntry.location;
+
+            // Remove the last entry from the array and clear the displayed entry
+            allEntries = allEntries.filter(entry => entry !== lastEntry);
+            lastEntry = null;
+            displayMcbEntries();
+        }
     }
 
     function previewInventoryFile() {
@@ -128,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.removeChild(downloadLink);
 
 
-        // **WARNING: SECURITY RISK - DO NOT USE IN PRODUCTION**
+       
         const githubToken = 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; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
