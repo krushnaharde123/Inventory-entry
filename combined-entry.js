@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const generateInventoryFileButton = document.getElementById('generate-inventory-file');
     const addEntryButton = document.getElementById('add-entry');
     let allEntries = [];
+    let lastEntry = null; // Store the last added entry
 
     const breakingCapacityData = {
         '5SL1': ['3KA'],
@@ -59,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const entry = { polarity, rating, productFamily, breakingCapacity, quantity, location };
         allEntries.push(entry);
-        displayEntries();
+        lastEntry = entry; // Store the last entry
+        displayLastEntry(); // Display only the last entry
 
         polaritySelect.value = '';
         ratingSelect.value = '';
@@ -69,35 +71,81 @@ document.addEventListener('DOMContentLoaded', function () {
         locationInput.value = '';
     }
 
-    function displayEntries() {
-        entryTableBody.innerHTML = '';
-        allEntries.forEach((entry, index) => {
+    function displayLastEntry() {
+        entryTableBody.innerHTML = ''; // Clear previous entries
+        if (lastEntry) {
             const row = document.createElement('tr');
-            if (index === allEntries.length - 1) {
-                row.classList.add('bold');
-            }
-            row.innerHTML = `<td>${entry.polarity}</td><td>${entry.rating}</td><td>${entry.productFamily}</td><td>${entry.breakingCapacity}</td><td>${entry.quantity}</td><td>${entry.location}</td>`;
+            row.classList.add('bold');
+            row.innerHTML = `
+                <td>${lastEntry.polarity}</td>
+                <td>${lastEntry.rating}</td>
+                <td>${lastEntry.productFamily}</td>
+                <td>${lastEntry.breakingCapacity}</td>
+                <td>${lastEntry.quantity}</td>
+                <td>${lastEntry.location}</td>
+                <td><button class="edit-entry">Edit</button></td>`; // Add Edit button
             entryTableBody.appendChild(row);
-        });
+        }
     }
+
+    // Edit entry functionality (add this event listener)
+    entryTableBody?.addEventListener('click', function(event) {
+        if (event.target.classList.contains('edit-entry')) {
+            editEntry();
+        }
+    });
+
+    function editEntry() {
+        if (lastEntry) {
+            // Populate the form with the last entry's data
+            polaritySelect.value = lastEntry.polarity;
+            ratingSelect.value = lastEntry.rating;
+            productFamilySelect.value = lastEntry.productFamily;
+
+            // Update breaking capacity options based on product family
+            updateBreakingCapacityOptions();
+            breakingCapacitySelect.value = lastEntry.breakingCapacity;
+
+            quantityInput.value = lastEntry.quantity;
+            locationInput.value = lastEntry.location;
+
+            // Remove the last entry from the array and clear the displayed entry
+            allEntries = allEntries.filter(entry => entry !== lastEntry);
+            lastEntry = null;
+            displayLastEntry();
+        }
+    }
+
 
     function previewInventoryFile() {
         if (allEntries.length === 0) {
             alert('No entries to preview.');
             return;
         }
-        displayEntries();
+        displayLastEntry(); // Display only the last entry
         generateInventoryFileButton.style.display = 'inline-block';
     }
 
     function generateInventoryFile() {
+        if (allEntries.length === 0) {
+            alert('No entries to generate.');
+            return;
+        }
+
+        // Ask for the file name
+        const fileName = prompt("Please enter the file name:", "inventory");
+        if (fileName === null || fileName === "") {
+            // User cancelled or entered an empty name
+            return;
+        }
+
         const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement('a');
         link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `inventory_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
         document.body.appendChild(link);
         link.click();
     }
@@ -114,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveCartonFileButton = document.getElementById('save-carton-file');
     const addCartonEntryButton = document.getElementById('add-carton-entry');
     let allCartonEntries = [];
+    let lastCartonEntry = null;
     let materialData = [];
 
     cartonMasterFileInput?.addEventListener('change', handleFileUpload);
@@ -170,7 +219,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const entry = { description, number, quantity, location };
         allCartonEntries.push(entry);
-        displayCartonEntries();
+        lastCartonEntry = entry;
+        displayLastCartonEntry();
 
         materialDescriptionInput.value = '';
         materialNumberInput.value = '';
@@ -178,43 +228,58 @@ document.addEventListener('DOMContentLoaded', function () {
         cartonLocationInput.value = '';
     }
 
-    function displayCartonEntries() {
+    function displayLastCartonEntry() {
         cartonEntryTableBody.innerHTML = '';
-        allCartonEntries.forEach((entry, index) => {
+         if (lastCartonEntry) {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${entry.description}</td>
-                <td>${entry.number}</td>
-                <td>${entry.quantity}</td>
-                <td>${entry.location}</td>
-                <td><button onclick="removeCartonEntry(${index})">Remove</button></td>
+                <td>${lastCartonEntry.description}</td>
+                <td>${lastCartonEntry.number}</td>
+                <td>${lastCartonEntry.quantity}</td>
+                <td>${lastCartonEntry.location}</td>
+                <td><button onclick="removeCartonEntry()">Remove</button></td>
             `;
             cartonEntryTableBody.appendChild(row);
-        });
+        }
     }
 
-    function removeCartonEntry(index) {
-        allCartonEntries.splice(index, 1);
-        displayCartonEntries();
+    function removeCartonEntry() {
+        if (lastCartonEntry) {
+            allCartonEntries = allCartonEntries.filter(entry => entry !== lastCartonEntry);
+            lastCartonEntry = null;
+            displayLastCartonEntry();
+        }
     }
+
 
     function previewCartonFile() {
         if (allCartonEntries.length === 0) {
             alert('No entries to preview.');
             return;
         }
-        displayCartonEntries();
+        displayLastCartonEntry();
         saveCartonFileButton.style.display = 'inline-block';
     }
 
     function saveCartonFile() {
+         if (allCartonEntries.length === 0) {
+            alert('No entries to generate.');
+            return;
+        }
+        // Ask for the file name
+        const fileName = prompt("Please enter the file name:", "carton");
+        if (fileName === null || fileName === "") {
+            // User cancelled or entered an empty name
+            return;
+        }
+
         const csvHeader = "Material Description,Material Number,Quantity,Location";
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement('a');
         link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `carton_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
         document.body.appendChild(link);
         link.click();
     }
