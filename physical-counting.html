@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Physical Counting</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <script src="combined-entry.js" defer></script>
 </head>
 <body>
     <div class="header">
@@ -35,7 +35,8 @@
         </div>
         <div id="mcb-tab" class="tab-content">
             <h2>MCB Entry Files</h2>
-            <table id="files-table">
+            <div id="loading-indicator" style="display:none;">Loading...</div>
+            <table id="entry-table">
                 <thead>
                     <tr>
                         <th>File Name</th>
@@ -47,7 +48,7 @@
         </div>
         <div id="carton-tab" class="tab-content">
             <h2>Carton Entry Files</h2>
-            <table id="carton-files-table">
+            <table id="carton-entry-table">
                 <thead>
                     <tr>
                         <th>File Name</th>
