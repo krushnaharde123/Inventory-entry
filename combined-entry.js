@@ -143,12 +143,45 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
-        document.body.appendChild(link);
-        link.click();
+
+        const githubToken = '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'; // Replace with your actual token!
+        const owner = 'krushnaharde123'; // Your GitHub username
+        const repo = 'Inventory-entry'; // Your repository name
+        const branch = 'main'; // Or your desired branch
+        const filePath = `physical-counting-files/mcb/${fileName}.csv`; // Customize path
+
+        // Encode the content
+        const contentEncoded = btoa(csvContent);
+
+        // GitHub API endpoint
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `Add ${fileName}.csv`,
+                content: contentEncoded,
+                branch: branch,
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('File saved successfully:', data);
+            alert('File saved successfully!');
+        })
+        .catch(error => {
+            console.error('Error saving file:', error);
+            alert('Error saving file. See console for details.');
+        });
     }
 
     // Carton Entry Page Logic
@@ -229,23 +262,37 @@ document.addEventListener('DOMContentLoaded', function () {
         cartonLocationInput.value = '';
     }
 
-    function displayLastCartonEntry() {
+   function displayLastCartonEntry() {
         cartonEntryTableBody.innerHTML = '';
-         if (lastCartonEntry) {
+        if (lastCartonEntry) {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${lastCartonEntry.description}</td>
                 <td>${lastCartonEntry.number}</td>
                 <td>${lastCartonEntry.quantity}</td>
                 <td>${lastCartonEntry.location}</td>
-                <td><button onclick="removeCartonEntry()">Remove</button></td>
+                <td><button class="edit-carton-entry">Edit</button></td>
             `;
             cartonEntryTableBody.appendChild(row);
         }
     }
 
-    function removeCartonEntry() {
+    // Edit carton entry functionality
+    cartonEntryTableBody?.addEventListener('click', function(event) {
+        if (event.target.classList.contains('edit-carton-entry')) {
+            editCartonEntry();
+        }
+    });
+
+    function editCartonEntry() {
         if (lastCartonEntry) {
+            // Populate the form with the last entry's data
+            materialDescriptionInput.value = lastCartonEntry.description;
+            materialNumberInput.value = lastCartonEntry.number;
+            cartonQuantityInput.value = lastCartonEntry.quantity;
+            cartonLocationInput.value = lastCartonEntry.location;
+
+            // Remove the last entry from the array and clear the displayed entry
             allCartonEntries = allCartonEntries.filter(entry => entry !== lastCartonEntry);
             lastCartonEntry = null;
             displayLastCartonEntry();
@@ -270,19 +317,52 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ask for the file name
         const fileName = prompt("Please enter the file name:", "carton");
         if (fileName === null || fileName === "") {
-            // User cancelled or entered an empty name
             return;
         }
 
         const csvHeader = "Material Description,Material Number,Quantity,Location";
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
-        document.body.appendChild(link);
-        link.click();
+
+        // **WARNING: SECURITY RISK - DO NOT USE IN PRODUCTION**
+        const githubToken = 'YOUR_GITHUB_TOKEN'; // Replace with your actual token!
+        const owner = 'krushnaharde123'; // Your GitHub username
+        const repo = 'Inventory-entry'; // Your repository name
+        const branch = 'main'; // Or your desired branch
+        const filePath = `physical-counting-files/carton/${fileName}.csv`; // Customize path
+
+        // Encode the content
+        const contentEncoded = btoa(csvContent);
+
+        // GitHub API endpoint
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `Add ${fileName}.csv`,
+                content: contentEncoded,
+                branch: branch,
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('File saved successfully:', data);
+            alert('File saved successfully!');
+        })
+        .catch(error => {
+            console.error('Error saving file:', error);
+            alert('Error saving file. See console for details.');
+        });
     }
 
      // Initialize breaking capacity options on page load for MCB Entry
