@@ -63,10 +63,11 @@ document.addEventListener('DOMContentLoaded', function () {
         lastEntry = entry; // Store the last entry
         displayLastEntry(); // Display only the last entry
 
+        // Reset form fields
         polaritySelect.value = '';
         ratingSelect.value = '';
         productFamilySelect.value = '';
-        breakingCapacitySelect.innerHTML = '';
+        updateBreakingCapacityOptions(); // Reset breaking capacity options
         quantityInput.value = '';
         locationInput.value = '';
     }
