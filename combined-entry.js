@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-        const githubToken = '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'; // Replace with your actual token!
+        const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
      // Function to list files from GitHub repository
     function listFiles(type, tableBody) {
-         const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const directoryPath = `physical-counting-files/${type}`; // Directory to list files from
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to download a file
     function downloadFile(fileName, type) {
-         const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to delete a file
     function deleteFile(fileName, type) {
-         const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // Helper function to get the file SHA
     function getFileSha(fileName, type) {
-         const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
@@ -543,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-         const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
         const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
         const contentEncoded = btoa(csvContent);
-         const githubToken = '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'; // Replace with your actual token!
+         const githubToken = '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'; // Replace with your actual token!
         const owner = 'krushnaharde123'; // Your GitHub username
         const repo = 'Inventory-entry'; // Your repository name
         const branch = 'main';
