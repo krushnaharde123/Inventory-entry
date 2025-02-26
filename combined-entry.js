@@ -60,8 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const entry = { polarity, rating, productFamily, breakingCapacity, quantity, location };
         allEntries.push(entry);
-        lastEntry = entry;
-        displayMcbEntries();
+        displayMcbEntries(); // Call display function to update the table with all entries
         // Reset form fields
         polaritySelect.value = '';
         ratingSelect.value = '';
@@ -71,46 +70,48 @@ document.addEventListener('DOMContentLoaded', function () {
         locationInput.value = '';
     }
 
-    // Function to display the last added MCB entry
+    // Function to display all MCB entries
     function displayMcbEntries() {
-        entryTableBody.innerHTML = '';
-        if (lastEntry) {
+        entryTableBody.innerHTML = ''; // Clear the table body
+
+        allEntries.forEach((entry, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${lastEntry.polarity}</td>
-                <td>${lastEntry.rating}</td>
-                <td>${lastEntry.productFamily}</td>
-                <td>${lastEntry.breakingCapacity}</td>
-                <td>${lastEntry.quantity}</td>
-                <td>${lastEntry.location}</td>
-                <td><button class="edit-entry">Edit</button></td>
+                <td>${entry.polarity}</td>
+                <td>${entry.rating}</td>
+                <td>${entry.productFamily}</td>
+                <td>${entry.breakingCapacity}</td>
+                <td>${entry.quantity}</td>
+                <td>${entry.location}</td>
+                <td><button class="edit-entry" data-index="${index}">Edit</button></td>
             `;
             entryTableBody.appendChild(row);
-        }
+        });
     }
 
     // Edit entry functionality
     entryTableBody?.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-entry')) {
-            editEntry();
+            const index = event.target.dataset.index;
+            editEntry(index);
         }
     });
 
-    function editEntry() {
-        if (lastEntry) {
-            // Populate the form with the last entry's data
-            polaritySelect.value = lastEntry.polarity;
-            ratingSelect.value = lastEntry.rating;
-            productFamilySelect.value = lastEntry.productFamily;
+    function editEntry(index) {
+        const entry = allEntries[index];
+        if (entry) {
+            // Populate the form with the entry's data
+            polaritySelect.value = entry.polarity;
+            ratingSelect.value = entry.rating;
+            productFamilySelect.value = entry.productFamily;
             updateBreakingCapacityOptions();
-            breakingCapacitySelect.value = lastEntry.breakingCapacity;
-            quantityInput.value = lastEntry.quantity;
-            locationInput.value = lastEntry.location;
+            breakingCapacitySelect.value = entry.breakingCapacity;
+            quantityInput.value = entry.quantity;
+            locationInput.value = entry.location;
 
-            // Remove the last entry from the array and clear the table display
-            allEntries = allEntries.filter(entry => entry !== lastEntry);
-            lastEntry = null;
-            displayMcbEntries();
+            // Remove the entry from the array
+            allEntries.splice(index, 1);
+            displayMcbEntries(); // Refresh the table
         }
     }
 
@@ -122,35 +123,28 @@ document.addEventListener('DOMContentLoaded', function () {
         generateInventoryFileButton.style.display = 'inline-block';
     }
 
-    // Instead of generating file to GitHub, we now save CSV content to localStorage.
+    // Save all entries to a single file in localStorage.
     function generateInventoryFileLocal() {
         if (allEntries.length === 0) {
             alert('No entries to generate.');
             return;
         }
 
-        // Iterate over each entry and save it as a separate file
-        allEntries.forEach((entry, index) => {
-            const fileName = prompt(`Please enter the file name for entry ${index + 1}:`, `inventory_${index + 1}`);
-            if (fileName === null || fileName === "") {
-                return; // Skip if no file name is entered
-            }
+        const fileName = prompt("Please enter the file name:", "inventory");
+        if (fileName === null || fileName === "") {
+            return;
+        }
 
-            const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
-            const csvRow = `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`;
-            const csvContent = `${csvHeader}\n${csvRow}`;
+        const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
+        const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`).join('\n');
+        const csvContent = `${csvHeader}\n${csvRows}`;
 
-            // Save file content in localStorage under a unique key.
-            let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
-            mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
-            localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
-        });
+        // Save file content in localStorage under "mcbFiles".
+        let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
+        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
 
         alert('MCB entries saved to local storage successfully!');
-        // Clear all entries after saving
-        allEntries = [];
-        lastEntry = null;
-        displayMcbEntries(); // Clear the table
         listFiles('mcb', document.querySelector('#mcb-tab tbody'));
     }
 
@@ -232,16 +226,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function displayCartonEntries() {
         cartonEntryTableBody.innerHTML = '';
-        allCartonEntries.forEach(entry => {
+        allCartonEntries.forEach((entry, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${entry.description}</td>
                 <td>${entry.number}</td>
                 <td>${entry.quantity}</td>
                 <td>${entry.location}</td>
+                <td><button class="edit-carton-entry" data-index="${index}">Edit</button></td>
             `;
             cartonEntryTableBody.appendChild(row);
         });
+    }
+
+    // Edit carton entry functionality
+    cartonEntryTableBody?.addEventListener('click', function(event) {
+        if (event.target.classList.contains('edit-carton-entry')) {
+            const index = event.target.dataset.index;
+            editCartonEntry(index);
+        }
+    });
+
+    function editCartonEntry(index) {
+        const entry = allCartonEntries[index];
+        if (entry) {
+            materialDescriptionInput.value = entry.description;
+            materialNumberInput.value = entry.number;
+            cartonQuantityInput.value = entry.quantity;
+            cartonLocationInput.value = entry.location;
+
+            allCartonEntries.splice(index, 1);
+            displayCartonEntries();
+        }
     }
 
     function previewCartonFile() {
@@ -265,8 +281,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const csvHeader = "Material Description,Material Number,Quantity,Location";
-        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
-        const csvContent = `${csvHeader}\n${csvRows.join('\n')}`;
+        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`).join('\n');
+        const csvContent = `${csvHeader}\n${csvRows}`;
 
         let cartonFiles = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
         cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
@@ -381,55 +397,46 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-         allEntries.forEach((entry, index) => {
-            const fileName = prompt(`Please enter the file name for entry ${index + 1}:`, `mcb_inventory_${index + 1}`);
-            if (fileName === null || fileName === "") {
-                return; // Skip if no file name is entered
-            }
+        const fileName = prompt("Please enter the file name:", "inventory");
+        if (fileName === null || fileName === "") {
+            return;
+        }
 
-            const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
-            const csvRows = `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`;
-            const csvContent = `${csvHeader}\n${csvRows}`;
+        const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
+        const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`).join('\n');
+        const csvContent = `${csvHeader}\n${csvRows}`;
 
-            // Save file content in localStorage under a unique key.
-            let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
-            mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
-            localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
-        });
+        // Save file content in localStorage under "mcbFiles".
+        let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
+        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
 
         alert('MCB entries saved to local storage successfully!');
         // Clear all entries after saving
         allEntries = [];
-        lastEntry = null;
         displayMcbEntries(); // Clear the table
         listFiles('mcb', document.querySelector('#mcb-tab tbody'));
     };
      // Function to save Carton entries to localStorage (called from Physical Counting page)
      window.saveCartonEntries = function () {
-         if (allCartonEntries.length === 0) {
-            alert('No Carton entries to generate.');
+          if (allCartonEntries.length === 0) {
+            alert('No entries to generate.');
             return;
         }
-         allCartonEntries.forEach((entry, index) => {
-            const fileName = prompt(`Please enter the file name for entry ${index + 1}:`, `carton_inventory_${index + 1}`);
-            if (fileName === null || fileName === "") {
-                return; // Skip if no file name is entered
-            }
+        const fileName = prompt("Please enter the file name:", "carton");
+        if (fileName === null || fileName === "") {
+            return;
+        }
 
-            const csvHeader = "Material Description,Material Number,Quantity,Location";
-            const csvRows = `${entry.description},${entry.number},${entry.quantity},${entry.location}`;
-            const csvContent = `${csvHeader}\n${csvRows}`;
+        const csvHeader = "Material Description,Material Number,Quantity,Location";
+        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`).join('\n');
+        const csvContent = `${csvHeader}\n${csvRows}`;
 
-            // Save file content in localStorage under a unique key.
-            let cartonFiles = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
-            cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
-            localStorage.setItem('cartonFiles', JSON.stringify(cartonFiles));
-        });
+        let cartonFiles = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
+        cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        localStorage.setItem('cartonFiles', JSON.stringify(cartonFiles));
 
         alert('Carton entries saved to local storage successfully!');
-        // Clear all entries after saving
-        allCartonEntries = [];
-        displayCartonEntries();
         listFiles('carton', document.querySelector('#carton-tab tbody'));
     };
 });
