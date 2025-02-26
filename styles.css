@@ -6,7 +6,7 @@ body {
 }
 
 .header {
-    background-color: #009999; /* Use specified hex code */
+    background-color: #222; /* Revert to previous sidebar color */
     color: #fff;
     padding: 10px 0;
     text-align: left; /* Align header content to the left */
@@ -19,7 +19,7 @@ body {
     position: absolute; /* Position the logo in the corner */
     top: 10px;
     left: 10px;
-    color: #fff; /* Change logo color to white */
+    color: #fff; /* Logo color same as sidebar */
 }
 
 .header nav ul {
@@ -47,12 +47,12 @@ body {
 }
 
 .sidebar {
-    background-color: #009999; /* Use specified hex code */
+    background-color: #222; /* Revert to previous sidebar color */
     color: #fff;
     height: 100vh;
     padding: 15px;
     position: fixed;
-    width: 200px;
+    width: 150px; /* Reduce sidebar size by 25% (200px * 0.75 = 150px) */
 }
 
 .sidebar ul {
@@ -71,7 +71,7 @@ body {
 }
 
 .content {
-    margin-left: 220px;
+    margin-left: 170px; /* Adjust content margin based on new sidebar width */
     padding: 20px;
 }
 
@@ -156,7 +156,6 @@ th {
     padding: 10px 0;
 }
 
-/* Styles for the tab buttons on the Physical Counting page */
 .tab-button {
     background-color: #ddd;
     border: none;
