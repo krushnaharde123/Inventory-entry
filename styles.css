@@ -6,7 +6,7 @@ body {
 }
 
 .header {
-    background-color: #007ac3; /* Siemens blue */
+    background-color: #009999; /* Use specified hex code */
     color: #fff;
     padding: 10px 0;
     text-align: left; /* Align header content to the left */
@@ -19,6 +19,7 @@ body {
     position: absolute; /* Position the logo in the corner */
     top: 10px;
     left: 10px;
+    color: #fff; /* Change logo color to white */
 }
 
 .header nav ul {
@@ -46,7 +47,7 @@ body {
 }
 
 .sidebar {
-    background-color: #333;
+    background-color: #009999; /* Use specified hex code */
     color: #fff;
     height: 100vh;
     padding: 15px;
@@ -155,6 +156,7 @@ th {
     padding: 10px 0;
 }
 
+/* Styles for the tab buttons on the Physical Counting page */
 .tab-button {
     background-color: #ddd;
     border: none;
