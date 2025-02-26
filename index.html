@@ -5,22 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management System</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="combined-entry.js" defer></script>
+    <style>
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+        }
+
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        /* Style the active class link */
+        .tab a.active {
+          background-color: #ccc;
+        }
+    </style>
 </head>
 <body>
     <div class="header">
         <div class="logo">SIEMENS</div>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="entry.html">MCB Entry</a></li>
-                <li><a href="carton-entry.html">Carton Entry</a></li>
-                <li><a href="physical-counting.html">Physical Counting</a></li>
-            </ul>
-        </nav>
     </div>
     <div class="content">
-        <div class="container">
+        <div class="tab">
+            <a href="index.html" class="tablinks active">Home</a>
+            <a href="entry.html" class="tablinks">MCB Entry</a>
+            <a  href="carton-entry.html" class="tablinks">Carton Entry</a>
+            <a href="physical-counting.html" class="tablinks">Physical Counting</a>
+        </div>
+        <div id="Home" class="tabcontent">
             <h1>Welcome to the Inventory Management System</h1>
             <p>Select an option from the navigation menu to begin.</p>
         </div>
