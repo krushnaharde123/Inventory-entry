@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const entryTableBody = document.getElementById('entry-table')?.querySelector('tbody');
     const previewInventoryFileButton = document.getElementById('preview-inventory-file');
     const generateInventoryFileButton = document.getElementById('generate-inventory-file');
-    const addEntryButton = document.getElementById('add-entry'); // Get the correct add button
+    const addEntryButton = document.getElementById('add-entry');
     let allEntries = [];
     let lastEntry = null;
 
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     productFamilySelect?.addEventListener('change', updateBreakingCapacityOptions);
     addEntryButton?.addEventListener('click', addEntry);
     previewInventoryFileButton?.addEventListener('click', previewInventoryFile);
-    generateInventoryFileButton?.addEventListener('click', generateInventoryFileToGitHub); // Changed to generateInventoryFileToGitHub
+    generateInventoryFileButton?.addEventListener('click', generateInventoryFileLocal);
 
     function updateBreakingCapacityOptions() {
         const selectedFamily = productFamilySelect.value;
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const entry = { polarity, rating, productFamily, breakingCapacity, quantity, location };
         allEntries.push(entry);
         lastEntry = entry;
-        displayMcbEntries();  // Call the display function to update the table
+        displayMcbEntries();
         // Reset form fields
         polaritySelect.value = '';
         ratingSelect.value = '';
@@ -71,10 +71,10 @@ document.addEventListener('DOMContentLoaded', function () {
         locationInput.value = '';
     }
 
-     // Function to display all MCB entries
+    // Function to display the last added MCB entry
     function displayMcbEntries() {
-        entryTableBody.innerHTML = ''; // Clear the table body
-         if (lastEntry) {
+        entryTableBody.innerHTML = '';
+        if (lastEntry) {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${lastEntry.polarity}</td>
@@ -83,13 +83,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${lastEntry.breakingCapacity}</td>
                 <td>${lastEntry.quantity}</td>
                 <td>${lastEntry.location}</td>
-                 <td><button class="edit-entry">Edit</button></td>
-                `;
+                <td><button class="edit-entry">Edit</button></td>
+            `;
             entryTableBody.appendChild(row);
         }
     }
 
-      // Edit entry functionality (add this event listener)
+    // Edit entry functionality
     entryTableBody?.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-entry')) {
             editEntry();
@@ -102,15 +102,12 @@ document.addEventListener('DOMContentLoaded', function () {
             polaritySelect.value = lastEntry.polarity;
             ratingSelect.value = lastEntry.rating;
             productFamilySelect.value = lastEntry.productFamily;
-
-            // Update breaking capacity options based on product family
             updateBreakingCapacityOptions();
             breakingCapacitySelect.value = lastEntry.breakingCapacity;
-
             quantityInput.value = lastEntry.quantity;
             locationInput.value = lastEntry.location;
 
-            // Remove the last entry from the array and clear the displayed entry
+            // Remove the last entry from the array and clear the table display
             allEntries = allEntries.filter(entry => entry !== lastEntry);
             lastEntry = null;
             displayMcbEntries();
@@ -124,8 +121,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         generateInventoryFileButton.style.display = 'inline-block';
     }
-    // Function to generate and save the file to GitHub
-    function generateInventoryFileToGitHub() {
+
+    // Instead of generating file to GitHub, we now save CSV content to localStorage.
+    function generateInventoryFileLocal() {
         if (allEntries.length === 0) {
             alert('No entries to generate.');
             return;
@@ -138,47 +136,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
         const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
-        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const contentEncoded = btoa(csvContent);
-        const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const branch = 'main';
-        const filePath = `physical-counting-files/mcb/${fileName}.csv`;
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+        const csvContent = `${csvHeader}\n${csvRows.join('\n')}`;
 
-        fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `Add ${fileName}.csv`,
-                content: contentEncoded,
-                branch: branch
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                return response.json().then(errorData => { // Try to parse the error JSON
-                    console.error('GitHub API Error Details:', errorData); // Log the error details
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('File saved successfully:', data);
-            alert('MCB entries saved to GitHub successfully!');
-            // Refresh the file list on the Physical Counting page
-            listFiles('mcb', document.querySelector('#mcb-tab tbody'));
-        })
-        .catch(error => {
-            console.error('Error saving file:', error);
-            alert('Error saving file to GitHub. See console for details.');
-        });
+        // Save file content in localStorage under "mcbFiles".
+        let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
+        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
+
+        alert('MCB entries saved to local storage successfully!');
+        listFiles('mcb', document.querySelector('#mcb-tab tbody'));
     }
 
     // Carton Entry Page Logic
@@ -190,19 +156,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const cartonLocationInput = document.getElementById('carton-location');
     const cartonEntryTableBody = document.getElementById('carton-entry-table')?.querySelector('tbody');
     const previewCartonFileButton = document.getElementById('preview-carton-file');
-    const saveCartonFileButton = document.getElementById('save-cartonFileButton');
+    const saveCartonFileButton = document.getElementById('save-carton-file');
     const addCartonEntryButton = document.getElementById('add-carton-entry');
     let allCartonEntries = [];
-    let materialData = []; // Store the material data
+    let materialData = [];
 
-    // Event Listeners
     cartonMasterFileInput?.addEventListener('change', handleFileUpload);
     materialDescriptionInput?.addEventListener('input', handleMaterialDescriptionInput);
     addCartonEntryButton?.addEventListener('click', addCartonEntry);
     previewCartonFileButton?.addEventListener('click', previewCartonFile);
-    saveCartonFileButton?.addEventListener('click', saveCartonFile);
+    saveCartonFileButton?.addEventListener('click', saveCartonFileLocal);
 
-    // Function to handle file upload
     function handleFileUpload(event) {
         const file = event.target.files[0];
         if (file) {
@@ -213,35 +177,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
                 materialData = XLSX.utils.sheet_to_json(worksheet);
-                populateMaterialList(); // Call populateMaterialList *after* materialData is loaded
+                populateMaterialList();
             };
             reader.readAsArrayBuffer(file);
         }
     }
 
-    // Function to populate the material list (datalist)
     function populateMaterialList() {
-        materialList.innerHTML = ''; // Clear existing options
+        materialList.innerHTML = '';
         materialData.forEach(item => {
             const option = document.createElement('option');
-            option.value = item['Material Description']; // Use the correct column name
+            option.value = item['Material Description'];
             materialList.appendChild(option);
         });
     }
 
-    // Function to handle material description input
     function handleMaterialDescriptionInput() {
         const description = materialDescriptionInput.value;
-        const material = materialData.find(item => item['Material Description'] === description); // Use the correct column name
-
+        const material = materialData.find(item => item['Material Description'] === description);
         if (material) {
-            materialNumberInput.value = material['Material Number']; // Use the correct column name
+            materialNumberInput.value = material['Material Number'];
         } else {
             materialNumberInput.value = '';
         }
     }
 
-    // Function to add a carton entry
     function addCartonEntry() {
         const description = materialDescriptionInput.value;
         const number = materialNumberInput.value;
@@ -255,19 +215,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const entry = { description, number, quantity, location };
         allCartonEntries.push(entry);
-        // Display all entries, not just the last one
         displayCartonEntries();
 
-        // Clear the input fields
         materialDescriptionInput.value = '';
         materialNumberInput.value = '';
         cartonQuantityInput.value = '';
         cartonLocationInput.value = '';
     }
 
-    // Function to display all carton entries
     function displayCartonEntries() {
-        cartonEntryTableBody.innerHTML = ''; // Clear the table body
+        cartonEntryTableBody.innerHTML = '';
         allCartonEntries.forEach(entry => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -280,24 +237,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-
-    // Function to preview the carton file
     function previewCartonFile() {
         if (allCartonEntries.length === 0) {
             alert('No entries to preview.');
             return;
         }
-        displayCartonEntries(); // Display all entries
+        displayCartonEntries();
         saveCartonFileButton.style.display = 'inline-block';
     }
 
-    // Function to save the carton file
-    function saveCartonFile() {
-         if (allCartonEntries.length === 0) {
+    // Save the Carton file in localStorage
+    function saveCartonFileLocal() {
+        if (allCartonEntries.length === 0) {
             alert('No entries to generate.');
             return;
         }
-        // Ask for the file name
         const fileName = prompt("Please enter the file name:", "carton");
         if (fileName === null || fileName === "") {
             return;
@@ -305,21 +259,102 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const csvHeader = "Material Description,Material Number,Quantity,Location";
         const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
-        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `${fileName}.csv`); // Use the user-provided file name
-        document.body.appendChild(link);
-        link.click();
+        const csvContent = `${csvHeader}\n${csvRows.join('\n')}`;
+
+        let cartonFiles = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
+        cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        localStorage.setItem('cartonFiles', JSON.stringify(cartonFiles));
+
+        alert('Carton entries saved to local storage successfully!');
+        listFiles('carton', document.querySelector('#carton-tab tbody'));
     }
 
-     // Initialize breaking capacity options on page load for MCB Entry
-     if (productFamilySelect) {
+    // Listing files from localStorage on the Physical Counting page
+    function listFiles(type, tableBody) {
+        tableBody.innerHTML = '';
+        let files = [];
+        if (type === 'mcb') {
+            files = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
+        } else if (type === 'carton') {
+            files = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
+        }
+        if (!files || files.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="2">No files found.</td></tr>';
+            return;
+        }
+        files.forEach((file, index) => {
+            const row = document.createElement('tr');
+            row.classList.add('bold');
+            row.innerHTML = `
+                <td>${file.fileName}</td>
+                <td>
+                    <button class="download-file" data-index="${index}" data-type="${type}">Download</button>
+                    <button class="delete-file" data-index="${index}" data-type="${type}">Delete</button>
+                </td>`;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Download file from localStorage
+    function downloadFileLocal(index, type) {
+        let files = [];
+        if (type === 'mcb') {
+            files = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
+        } else if (type === 'carton') {
+            files = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
+        }
+        const file = files[index];
+        if (file) {
+            const downloadLink = document.createElement('a');
+            downloadLink.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(file.content));
+            downloadLink.setAttribute('download', file.fileName);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    }
+
+    // Delete file from localStorage
+    function deleteFileLocal(index, type) {
+        let files = [];
+        if (type === 'mcb') {
+            files = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
+        } else if (type === 'carton') {
+            files = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
+        }
+        files.splice(index, 1);
+        if (type === 'mcb') {
+            localStorage.setItem('mcbFiles', JSON.stringify(files));
+        } else if (type === 'carton') {
+            localStorage.setItem('cartonFiles', JSON.stringify(files));
+        }
+        alert('File deleted successfully!');
+        const tableBody = (type === 'mcb')
+            ? document.querySelector('#mcb-tab tbody')
+            : document.querySelector('#carton-tab tbody');
+        listFiles(type, tableBody);
+    }
+
+    // Global event listener for download and delete buttons on Physical Counting page
+    document.querySelector('.content')?.addEventListener('click', function (event) {
+        if (event.target.classList.contains('download-file')) {
+            const index = parseInt(event.target.dataset.index);
+            const type = event.target.dataset.type;
+            downloadFileLocal(index, type);
+        } else if (event.target.classList.contains('delete-file')) {
+            const index = parseInt(event.target.dataset.index);
+            const type = event.target.dataset.type;
+            deleteFileLocal(index, type);
+        }
+    });
+
+    // Initialize breaking capacity options on page load for MCB Entry
+    if (productFamilySelect) {
         updateBreakingCapacityOptions();
     }
 
-    // Call listFiles() on page load - Physical Counting
+    // Load file lists on page load for Physical Counting
     const mcbTab = document.getElementById('mcb-tab');
     const cartonTab = document.getElementById('carton-tab');
 
@@ -332,313 +367,4 @@ document.addEventListener('DOMContentLoaded', function () {
         const cartonTableBody = cartonTab.querySelector('tbody');
         listFiles('carton', cartonTableBody);
     }
-     // Function to list files from GitHub repository
-    function listFiles(type, tableBody) {
-         const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const directoryPath = `physical-counting-files/${type}`; // Directory to list files from
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${directoryPath}`;
-
-        document.getElementById('loading-indicator').style.display = 'block'; // Show loading indicator
-
-        fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                return response.json().then(errorData => { // Try to parse the error JSON
-                    console.error('GitHub API Error Details:', errorData); // Log the error details
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(files => {
-            displayFiles(files, type, tableBody);
-        })
-        .catch(error => {
-            console.error('Error listing files:', error);
-            alert('Error listing files. See console for details.');
-        })
-        .finally(() => {
-            document.getElementById('loading-indicator').style.display = 'none'; // Hide loading indicator
-        });
-    }
-
-    // Function to display files in the table
-    function displayFiles(files, type, tableBody) {
-       tableBody.innerHTML = ''; // Clear previous entries
-        if (!files || files.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="2">No files found.</td></tr>';
-            return;
-        }
-        files.forEach((file, index) => {
-            const row = document.createElement('tr');
-            row.classList.add('bold');
-            row.innerHTML = `
-                <td>${file.name}</td>
-                <td>
-                    <button class="download-file" data-name="${file.name}" data-type="${type}">Download</button>
-                    <button class="delete-file" data-name="${file.name}" data-type="${type}">Delete</button>
-                </td>`;
-            tableBody.appendChild(row);
-        });
-    }
-
-    // Function to download a file
-    function downloadFile(fileName, type) {
-         const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-
-        fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                return response.json().then(errorData => { // Try to parse the error JSON
-                    console.error('GitHub API Error Details:', errorData); // Log the error details
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(fileData => {
-            // Decode the content from base64
-            const decodedContent = atob(fileData.content);
-
-            // Create a download link
-            const downloadLink = document.createElement('a');
-            downloadLink.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(decodedContent));
-            downloadLink.setAttribute('download', fileName);
-            downloadLink.style.display = 'none';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-        })
-        .catch(error => {
-            console.error('Error downloading file:', error);
-            alert('Error downloading file. See console for details.');
-        });
-    }
-
-    // Function to delete a file
-    function deleteFile(fileName, type) {
-         const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
-         // Get the file SHA for deletion
-        getFileSha(fileName, type)
-            .then(sha => {
-                if (!sha) {
-                    alert('Could not find file SHA for deletion.');
-                    return;
-                }
-                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-                fetch(apiUrl, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `token ${githubToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Delete ${fileName}`,
-                        sha: sha,
-                        branch: 'main'
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                         console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                        return response.json().then(errorData => { // Try to parse the error JSON
-                            console.error('GitHub API Error Details:', errorData); // Log the error details
-                            throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                        });
-                    }
-                    alert('File deleted successfully!');
-                    // After deleting, refresh the file list
-                    const tableBody = (type === 'mcb') ? document.querySelector('#mcb-tab tbody') : document.querySelector('#carton-tab tbody');
-                    listFiles(type, tableBody); // Refresh the list
-                })
-                .catch(error => {
-                    console.error('Error deleting file:', error);
-                    alert('Error deleting file. See console for details.');
-                });
-            });
-    }
-    // Helper function to get the file SHA
-    function getFileSha(fileName, type) {
-         const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const filePath = `physical-counting-files/${type}/${fileName}`; // Path to the file
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-
-        return fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                return response.json().then(errorData => { // Try to parse the error JSON
-                    console.error('GitHub API Error Details:', errorData); // Log the error details
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(fileData => {
-            return fileData.sha;
-        })
-        .catch(error => {
-            console.error('Error getting file SHA:', error);
-            return null;
-        });
-    }
-
-    // Event listener for download and delete buttons - Physical Counting
-    document.querySelector('.content')?.addEventListener('click', function (event) {
-        if (event.target.classList.contains('download-file')) {
-            const fileName = event.target.dataset.name;
-            const type = event.target.dataset.type;
-            downloadFile(fileName, type);
-        } else if (event.target.classList.contains('delete-file')) {
-            const fileName = event.target.dataset.name;
-            const type = event.target.dataset.type;
-            deleteFile(fileName, type);
-        }
-    });
-
-    // Function to save MCB entries to GitHub (called from Physical Counting page)
-     window.saveMcbEntries = function () {
-        if (allEntries.length === 0) {
-            alert('No MCB entries to save.');
-            return;
-        }
-
-        const fileName = prompt("Please enter the file name:", "mcb_inventory");
-        if (fileName === null || fileName === "") {
-            return;
-        }
-
-        const csvHeader = "Polarity,Rating,Product Family,Breaking Capacity,Quantity,Location";
-        const csvRows = allEntries.map(entry => `${entry.polarity},${entry.rating},${entry.productFamily},${entry.breakingCapacity},${entry.quantity},${entry.location}`);
-        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const contentEncoded = btoa(csvContent);
-         const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const branch = 'main';
-        const filePath = `physical-counting-files/mcb/${fileName}.csv`;
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-
-        fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `Add ${fileName}.csv`,
-                content: contentEncoded,
-                branch: branch
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                return response.json().then(errorData => { // Try to parse the error JSON
-                    console.error('GitHub API Error Details:', errorData); // Log the error details
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('File saved successfully:', data);
-            alert('MCB entries saved successfully!');
-            // Refresh the file list after saving
-            const mcbTableBody = document.querySelector('#mcb-tab tbody');
-            listFiles('mcb', mcbTableBody);
-        })
-        .catch(error => {
-            console.error('Error saving file:', error);
-            alert('Error saving file. See console for details.');
-        });
-    };
-     // Function to save Carton entries to GitHub (called from Physical Counting page)
-     window.saveCartonEntries = function () {
-        if (allCartonEntries.length === 0) {
-            alert('No Carton entries to save.');
-            return;
-        }
-
-        const fileName = prompt("Please enter the file name:", "carton_inventory");
-        if (fileName === null || fileName === "") {
-            return;
-        }
-
-        const csvHeader = "Material Description,Material Number,Quantity,Location";
-        const csvRows = allCartonEntries.map(entry => `${entry.description},${entry.number},${entry.quantity},${entry.location}`);
-        const csvContent = `data:text/csv;charset=utf-8,${csvHeader}\n${csvRows.join('\n')}`;
-        const contentEncoded = btoa(csvContent);
-         const githubToken = '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'; // Replace with your actual token!
-        const owner = 'krushnaharde123'; // Your GitHub username
-        const repo = 'Inventory-entry'; // Your repository name
-        const branch = 'main';
-        const filePath = `physical-counting-files/carton/${fileName}.csv`;
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-
-        fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: `Add ${fileName}.csv`,
-                content: contentEncoded,
-                branch: branch
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                 console.error('GitHub API Error:', response.status, response.statusText); // Log the status and text
-                return response.json().then(errorData => { // Try to parse the error JSON
-                    console.error('GitHub API Error Details:', errorData); // Log the error details
-                    throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('File saved successfully:', data);
-            alert('Carton entries saved successfully!');
-            // Refresh the file list after saving
-            const cartonTableBody = document.querySelector('#carton-tab tbody');
-            listFiles('carton', cartonTableBody);
-        })
-        .catch(error => {
-            console.error('Error saving file:', error);
-            alert('Error saving file. See console for details.');
-        });
-    };
 });
