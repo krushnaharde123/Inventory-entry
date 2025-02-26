@@ -6,42 +6,24 @@
     <title>Inventory Management System</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .tab {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
+        .homepage-links {
+            text-align: center;
+            margin-top: 50px; /* Add some space below the header */
         }
 
-        .tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
+        .homepage-links a {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #007ac3; /* Siemens blue */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
         }
 
-        .tab button:hover {
-            background-color: #ddd;
-        }
-
-        .tabcontent {
-            display: none;
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            border-top: none;
-        }
-
-        .tabcontent {
-            display: none;
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            border-top: none;
-        }
-        /* Style the active class link */
-        .tab a.active {
-          background-color: #ccc;
+        .homepage-links a:hover {
+            background-color: #005ca3; /* Darker blue on hover */
         }
     </style>
 </head>
@@ -50,15 +32,14 @@
         <div class="logo">SIEMENS</div>
     </div>
     <div class="content">
-        <div class="tab">
-            <a href="index.html" class="tablinks active">Home</a>
-            <a href="entry.html" class="tablinks">MCB Entry</a>
-            <a  href="carton-entry.html" class="tablinks">Carton Entry</a>
-            <a href="physical-counting.html" class="tablinks">Physical Counting</a>
+        <div class="homepage-links">
+            <a href="entry.html">MCB Entry</a>
+            <a href="carton-entry.html">Carton Entry</a>
+            <a href="physical-counting.html">Physical Counting</a>
         </div>
-        <div id="Home" class="tabcontent">
+        <div>
             <h1>Welcome to the Inventory Management System</h1>
-            <p>Select an option from the navigation menu to begin.</p>
+            <p>Select an option from the links above to begin.</p>
         </div>
     </div>
 </body>
