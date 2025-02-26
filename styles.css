@@ -3,14 +3,19 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f0f0f0; /* Lighter background */
+    padding-top: 60px; /* Add padding to the top of the body */
 }
 
 .header {
-    background-color: #222; /* Revert to previous sidebar color */
+    background-color: #222;
     color: #fff;
-    padding: 10px 0;
-    text-align: left; /* Align header content to the left */
-    position: relative; /* Needed for absolute positioning of the logo */
+    padding: 10.5px 0;
+    text-align: left;
+    position: fixed; /* Changed to fixed */
+    top: 0;          /* Added */
+    left: 0;         /* Added */
+    width: 100%;      /* Added */
+    z-index: 1000;    /* Added */
 }
 
 .header .logo {
@@ -73,6 +78,7 @@ body {
 .content {
     margin-left: 170px; /* Adjust content margin based on new sidebar width */
     padding: 20px;
+    /* margin-top: 60px;  Removed this as it's now handled by body padding */
 }
 
 .container {
