@@ -163,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let materialData = [];
 
     cartonMasterFileInput?.addEventListener('change', handleFileUpload);
-    materialDescriptionInput?.addEventListener('input', handleMaterialDescriptionInput);
     materialNumberInput?.addEventListener('input', handleMaterialNumberInput); // ADD THIS LINE
     addCartonEntryButton?.addEventListener('click', addCartonEntry);
     previewCartonFileButton?.addEventListener('click', previewCartonFile);
@@ -187,45 +186,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function populateMaterialList() {
-        materialList.innerHTML = '';
+         materialList.innerHTML = '';
         materialData.forEach(item => {
             const option = document.createElement('option');
-            option.value = item['Material description'];
+            option.value = item['Material number']; // Populate datalist with material numbers
             materialList.appendChild(option);
         });
-    }
-
-   function handleMaterialDescriptionInput() {
-        const description = materialDescriptionInput.value;
-
-        // Define possible keys for material description and number
-        const descriptionKey = 'Material description';
-        const numberKey = 'Material number';
-
-        const material = materialData.find(item => {
-            // Normalize both the input and the material description for comparison
-            const normalizedDescription = description.trim().toLowerCase();
-            const normalizedMaterialDescription = String(item[descriptionKey]).trim().toLowerCase(); // Ensure it's a string
-            console.log(`Comparing "${normalizedDescription}" with "${normalizedMaterialDescription}"`);
-
-            return normalizedDescription === normalizedMaterialDescription;
-        });
-
-        if (material) {
-            const materialNumber = material[numberKey];
-            console.log("Found matching material:", material);
-            console.log("Material number:", materialNumber);
-
-            if (materialNumber !== undefined && materialNumber !== null) {
-                materialNumberInput.value = materialNumber;
-            } else {
-                materialNumberInput.value = '';
-                console.warn("Material number is undefined or null in the data.");
-            }
-        } else {
-            materialNumberInput.value = '';
-            console.log("No matching material found.");
-        }
     }
 
      function handleMaterialNumberInput() {
@@ -236,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const numberKey = 'Material number';
 
         const material = materialData.find(item => {
-            // Normalize both the input and the material description for comparison
+            // Normalize both the input and the material number for comparison
             const normalizedNumber = String(number).trim().toLowerCase();
             const normalizedMaterialNumber = String(item[numberKey]).trim().toLowerCase(); // Ensure it's a string
             console.log(`Comparing "${normalizedNumber}" with "${normalizedMaterialNumber}"`);
