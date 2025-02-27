@@ -177,13 +177,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveCartonFileButton = document.getElementById('save-carton-file');
     const addCartonEntryButton = document.getElementById('add-carton-entry');
     let allCartonEntries = [];
-     let lastCartonEntry = null;
+    let lastCartonEntry = null;
+    let materialData = []; // To store the parsed Excel data
+    const MASTER_FILE_KEY = 'masterExcelFile';
 
     cartonMasterFileInput?.addEventListener('change', handleFileUpload);
     materialNumberInput?.addEventListener('input', handleMaterialNumberInput);
     addCartonEntryButton?.addEventListener('click', addCartonEntry);
     previewCartonFileButton?.addEventListener('click', previewCartonFile);
     saveCartonFileButton?.addEventListener('click', saveCartonFileLocal);
+
+    // Load the excel data from local storage
+    window.onload = function() {
+        const storedData = localStorage.getItem(MASTER_FILE_KEY);
+        if (storedData) {
+            materialData = JSON.parse(storedData);
+            populateMaterialList();
+        }
+    };
 
     function handleFileUpload(event) {
         const file = event.target.files[0];
@@ -196,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const worksheet = workbook.Sheets[firstSheetName];
                 materialData = XLSX.utils.sheet_to_json(worksheet);
                 console.log("Parsed Excel data:", materialData); // Inspect the data
+                localStorage.setItem(MASTER_FILE_KEY, JSON.stringify(materialData));
                 populateMaterialList();
             };
             reader.readAsArrayBuffer(file);
@@ -478,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Save file content in localStorage under "mcbFiles".
         let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
           const createdAt = new Date().toISOString();
-        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt:createdAt });
+        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: createdAt });
         localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
 
         alert('MCB entries saved to local storage successfully!');
