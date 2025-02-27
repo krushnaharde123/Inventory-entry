@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const entry = { polarity, rating, productFamily, breakingCapacity, quantity, location };
         allEntries.push(entry);
         lastEntry = entry;
-        displayMcbEntries();
+        displayLastMcbEntry(); // Added this line
         // Reset form fields
         polaritySelect.value = '';
         ratingSelect.value = '';
@@ -71,8 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
         locationInput.value = '';
     }
 
-    // Function to display the last added MCB entry
-    function displayMcbEntries() {
+    function displayLastMcbEntry() {
         entryTableBody.innerHTML = '';
         if (lastEntry) {
             const row = document.createElement('tr');
@@ -87,6 +86,24 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             entryTableBody.appendChild(row);
         }
+    }
+
+    // Function to display MCB entries
+    function displayMcbEntries() {
+        entryTableBody.innerHTML = '';
+        allEntries.forEach((entry, index) => { // Loop through all entries
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${entry.polarity}</td>
+                <td>${entry.rating}</td>
+                <td>${entry.productFamily}</td>
+                <td>${entry.breakingCapacity}</td>
+                <td>${entry.quantity}</td>
+                <td>${entry.location}</td>
+                <td><button class="edit-entry" data-index="${index}">Edit</button></td>
+            `;
+            entryTableBody.appendChild(row);
+        });
     }
 
     // Edit entry functionality
@@ -107,10 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
             quantityInput.value = lastEntry.quantity;
             locationInput.value = lastEntry.location;
 
-            // Remove the last entry from the array and clear the table display
-            allEntries = allEntries.filter(entry => entry !== lastEntry);
-            lastEntry = null;
-            displayMcbEntries();
+            displayLastMcbEntry();
         }
     }
 
@@ -119,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('No entries to preview.');
             return;
         }
+        displayMcbEntries(); // Called here to display all entry
         generateInventoryFileButton.style.display = 'inline-block';
     }
 
@@ -140,10 +155,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Save file content in localStorage under "mcbFiles".
         let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
-        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        const createdAt = new Date().toISOString();
+        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: createdAt });
         localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
 
         alert('MCB entries saved to local storage successfully!');
+        allEntries = [];
+        displayMcbEntries();
         listFiles('mcb', document.querySelector('#mcb-tab tbody'));
     }
 
@@ -159,8 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveCartonFileButton = document.getElementById('save-carton-file');
     const addCartonEntryButton = document.getElementById('add-carton-entry');
     let allCartonEntries = [];
-    let lastCartonEntry = null;
-    let materialData = [];
+     let lastCartonEntry = null;
 
     cartonMasterFileInput?.addEventListener('change', handleFileUpload);
     materialNumberInput?.addEventListener('input', handleMaterialNumberInput);
@@ -242,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const entry = { number, description, quantity, location };
         allCartonEntries.push(entry);
         lastCartonEntry = entry;
-        displayCartonEntries();
+        displayLastCartonEntry();//displayCartonEntries(); // Removed this line
 
         materialNumberInput.value = '';
         materialDescriptionInput.value = '';
@@ -250,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
         cartonLocationInput.value = '';
     }
 
-    function displayCartonEntries() {
+     function displayLastCartonEntry() {
         cartonEntryTableBody.innerHTML = '';
-         if (lastCartonEntry) {
+        if (lastCartonEntry) {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${lastCartonEntry.number}</td>
@@ -263,6 +280,21 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             cartonEntryTableBody.appendChild(row);
         }
+    }
+
+    function displayCartonEntries() {
+        cartonEntryTableBody.innerHTML = '';
+        allCartonEntries.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${entry.number}</td>
+                <td>${entry.description}</td>
+                <td>${entry.quantity}</td>
+                <td>${entry.location}</td>
+                <td><button class="edit-carton-entry" data-index="${index}">Edit</button></td>
+            `;
+            cartonEntryTableBody.appendChild(row);
+        });
     }
 
     // Edit carton entry functionality
@@ -279,9 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cartonQuantityInput.value = lastCartonEntry.quantity;
             cartonLocationInput.value = lastCartonEntry.location;
 
-            allCartonEntries = allCartonEntries.filter(entry => entry !== lastCartonEntry);
-            lastCartonEntry = null;
-            displayCartonEntries();
+            displayLastCartonEntry();
         }
     }
 
@@ -290,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('No entries to preview.');
             return;
         }
-        displayCartonEntries();
+        displayCartonEntries(); // Called here to display all entries
         saveCartonFileButton.style.display = 'inline-block';
     }
 
@@ -310,10 +340,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvContent = `${csvHeader}\n${csvRows}`;
 
         let cartonFiles = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
-        cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+        const createdAt = new Date().toISOString();
+        cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: createdAt });
         localStorage.setItem('cartonFiles', JSON.stringify(cartonFiles));
 
         alert('Carton entries saved to local storage successfully!');
+        allCartonEntries = [];
+        displayCartonEntries();
         listFiles('carton', document.querySelector('#carton-tab tbody'));
     }
 
@@ -333,11 +366,22 @@ document.addEventListener('DOMContentLoaded', function () {
         files.forEach((file, index) => {
             const row = document.createElement('tr');
             row.classList.add('bold');
+            const fileDate = new Date(file.createdAt);
+             const formattedDate = fileDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false // Use 24-hour format
+            });
+
             row.innerHTML = `
                 <td>${file.fileName}</td>
                 <td>
                     <button class="download-file" data-index="${index}" data-type="${type}">Download</button>
                     <button class="delete-file" data-index="${index}" data-type="${type}">Delete</button>
+                    <span class="file-date">Saved: ${formattedDate}</span>
                 </td>`;
             tableBody.appendChild(row);
         });
@@ -433,7 +477,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Save file content in localStorage under "mcbFiles".
         let mcbFiles = JSON.parse(localStorage.getItem('mcbFiles') || '[]');
-        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+          const createdAt = new Date().toISOString();
+        mcbFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt:createdAt });
         localStorage.setItem('mcbFiles', JSON.stringify(mcbFiles));
 
         alert('MCB entries saved to local storage successfully!');
@@ -458,10 +503,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const csvContent = `${csvHeader}\n${csvRows}`;
 
         let cartonFiles = JSON.parse(localStorage.getItem('cartonFiles') || '[]');
-        cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: new Date().toISOString() });
+          const createdAt = new Date().toISOString();
+        cartonFiles.push({ fileName: `${fileName}.csv`, content: csvContent, createdAt: createdAt });
         localStorage.setItem('cartonFiles', JSON.stringify(cartonFiles));
 
         alert('Carton entries saved to local storage successfully!');
+        allCartonEntries = [];
+        displayCartonEntries();
         listFiles('carton', document.querySelector('#carton-tab tbody'));
     };
 });
