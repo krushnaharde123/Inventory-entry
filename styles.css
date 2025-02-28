@@ -3,32 +3,35 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4; /* Slightly improved light gray */
+    background-color: #f4f4f4;
 }
 
 /* Header Styling */
 .header {
     background-color: #222;
     color: #fff;
-    padding: 15px 20px; /* Increased padding for better spacing */
+    padding: 15px 20px;
     text-align: left;
-    position: fixed; /* Keeps it fixed on top */
+    position: fixed;
     width: 100%;
     top: 0;
     left: 0;
-    z-index: 1000; /* Ensures it's above other content */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    z-index: 1000;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    height: 60px; /* Restored original header size */
+    display: flex;
+    align-items: center; /* Keep header contents aligned */
 }
 
 .header .logo {
     font-size: 26px;
     font-weight: bold;
-    color: #00a651; /* Siemens green */
+    color: #fff; /* Logo color changed to white */
 }
 
-/* Push content down to avoid overlapping header */
+/* Prevent homepage overlap */
 .content {
-    margin-top: 80px; /* Space for fixed header */
+    margin-top: 80px;
     text-align: center;
 }
 
@@ -46,7 +49,7 @@ body {
     padding: 18px 25px;
     font-size: 18px;
     font-weight: bold;
-    background-color: #007ac3; /* Siemens blue */
+    background-color: #007ac3;
     color: white;
     text-decoration: none;
     border-radius: 10px;
@@ -58,7 +61,7 @@ body {
 
 .homepage-links a:hover {
     background-color: #005ca3;
-    transform: translateY(-3px); /* Slight lift effect */
+    transform: translateY(-3px);
 }
 
 /* Container Styling */
@@ -127,7 +130,7 @@ select {
 
 /* Buttons */
 button {
-    background-color: #00a651; /* Siemens green */
+    background-color: #00a651;
     border: none;
     border-radius: 4px;
     color: white;
@@ -138,7 +141,7 @@ button {
 }
 
 button:hover {
-    background-color: #008037; /* Darker green on hover */
+    background-color: #008037;
 }
 
 /* Tables */
